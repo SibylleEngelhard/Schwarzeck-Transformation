@@ -7,7 +7,7 @@ import base64
 from pyproj import transform, Transformer,CRS
 #from pyproj.transformer import TransformerGroup
 # Page Configuration
-st.set_page_config(page_title='Schwarzeck Namibia App',
+st.set_page_config(page_title='Schwarzeck Transformation Namibia',
 	page_icon='🌐',
 	layout='wide',
 	initial_sidebar_state='expanded')
