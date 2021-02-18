@@ -1,7 +1,7 @@
 import streamlit as st
 from PIL import Image
 import pandas as pd
-import numpy as np
+#import numpy as np
 import base64
 #from pyproj import Proj
 from pyproj import transform, Transformer,CRS
@@ -59,6 +59,8 @@ expander_bar.markdown('''
 - **Python libraries:** streamlit, pandas, pyproj.CRS, pyproj.Transformer, pyproj.transform
 - **Transformation Parameters:**  Default Transformation is *Schwarzeck to WGS84(3)*: DX=616.8 DY=103.3 DZ=-256.9    
 Different transformations are selectable: *Schwarzeck to WGS84(1)* https://epsg.io/1226 or *Schwarzeck to WGS84(2)* https://epsg.io/1271
+- **Accuracy:** The accuracy of the target coordinates depends on the area and the transformation parameters used and is generally given with 35 metres.
+- No warranty is given that the information provided in this app is free of errors - your use of this app and your reliance on any information on it is solely at your own risk.
 - **written by:** Sibylle Engelhard - African Geomatics  https://www.africangeomatics.com
 ''')
 
@@ -83,14 +85,14 @@ with col1b:
 col2a,col2b,col2c= st.beta_columns([4,1,3])
 
 with col2a:
-	source_datum=st.radio ('Datum',('Schwarzeck','WGS84'),key='testa')
+	source_datum=st.radio ('Source Datum',('Schwarzeck','WGS84'),key='testa')
 	st.write(' ')
 	st.write(' ')
 	st.write(' ')
 	st.write(' ')
 	
 with col2b:
-	target_datum=st.radio ('Datum',('Schwarzeck','WGS84'),key="testb")
+	target_datum=st.radio ('Target Datum',('Schwarzeck','WGS84'),key="testb")
 
 with col2c:
 	if source_datum != target_datum:
@@ -113,9 +115,9 @@ col3a, col3b,col3c,col3d= st.beta_columns([3,2,3,2])
 
 with col3a:	
 	if source_datum=='Schwarzeck':
-		source_coord_syst = st.radio('Coordinate System',('Geographical (decimal degrees)','Geographical (deg min sec)','Namibian (Gauss-Conform)'))
+		source_coord_syst = st.radio('Source Coordinate System',('Geographical (decimal degrees)','Geographical (deg min sec)','Namibian (Gauss-Conform)'))
 	else:
-		source_coord_syst = st.radio('Coordinate System',('Geographical (decimal degrees)','Geographical (deg min sec)','UTM Zone 33S'))
+		source_coord_syst = st.radio('Source Coordinate System',('Geographical (decimal degrees)','Geographical (deg min sec)','UTM Zone 33S'))
 	
 	
 with col3b:
@@ -126,9 +128,9 @@ with col3b:
 
 with col3c:
 	if target_datum=='Schwarzeck':
-		target_coord_syst = st.radio('Coordinate System',('Geographical (decimal degrees)','Geographical (deg min sec)','Namibian (Gauss-Conform)'),key="target_schwarzeck")
+		target_coord_syst = st.radio('Target Coordinate System',('Geographical (decimal degrees)','Geographical (deg min sec)','Namibian (Gauss-Conform)'),key="target_schwarzeck")
 	else:
-		target_coord_syst = st.radio('Coordinate System',('Geographical (decimal degrees)','Geographical (deg min sec)','UTM Zone 33S'),key="target_wgs")
+		target_coord_syst = st.radio('Target Coordinate System',('Geographical (decimal degrees)','Geographical (deg min sec)','UTM Zone 33S'),key="target_wgs")
 	
 with col3d:	
 	if target_coord_syst == 'Namibian (Gauss-Conform)':

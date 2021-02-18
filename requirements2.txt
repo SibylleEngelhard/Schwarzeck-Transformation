@@ -1,3 +1,0 @@
-streamlit==0.75.0
-pandas==1.2.1
-numpy==1.19.5pyproj==3.0.0
