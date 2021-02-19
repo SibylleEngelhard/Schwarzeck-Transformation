@@ -41,14 +41,14 @@ trafo_default_Schw_WGS = Transformer.from_crs(Schwarzeck3, CRS(4326),always_xy=T
 						
 
 # Image and Title 2 Columns
-col0a, col0b= st.beta_columns([5,1])
+col1a, col1b= st.beta_columns([5,1])
 image = Image.open('trig2.jpg')
 
-col0a.title('Schwarzeck - WGS84 Transformation Namibia')
-col0b.image(image,width=180)
+col1a.title('Schwarzeck - WGS84 Transformation Namibia')
+col1b.image(image,width=180)
 
 #App Description
-col0a.markdown('''
+col1a.markdown('''
 This app converts and transforms between different coordinate systems in the Namibian Schwarzeck datum and WGS84 datum.
 ''')
 
@@ -59,7 +59,6 @@ expander_bar.markdown('''
 - **Python libraries:** streamlit, pandas, pyproj.CRS, pyproj.Transformer, pyproj.transform
 - **Transformation Parameters:**  Default Transformation is *Schwarzeck to WGS84(3)*: DX=616.8 DY=103.3 DZ=-256.9    
 Different transformations are selectable: *Schwarzeck to WGS84(1)* https://epsg.io/1226 or *Schwarzeck to WGS84(2)* https://epsg.io/1271
-- **Accuracy:** The accuracy of the target coordinates depends on the area and the transformation parameters used and is generally given with 35 metres.
 - No warranty is given that the information provided in this app is free of errors - your use of this app and your reliance on any information on it is solely at your own risk.
 - **written by:** Sibylle Engelhard - African Geomatics  https://www.africangeomatics.com
 ''')
@@ -73,18 +72,13 @@ def filedownload(df,download_name,showtext):
     href = f'<a href="data:file/csv;base64,{b64}" download='+download_name+'>'+showtext+'</a>'
     return href
 
-#Sidebar and 2 Columns for Source and Target System
-st.sidebar.subheader("View Input Coordinates on Map:")
-col1a, col1b= st.beta_columns(2)
 
-with col1a:
-	st.header('Source System')
-with col1b:
-	st.header('Target System')
+st.sidebar.subheader("View Input Coordinates on Map:")
 	
-col2a,col2b,col2c= st.beta_columns([4,1,3])
+col2a,col2b,col2c= st.beta_columns([5,2,3])
 
 with col2a:
+	st.header('Source System')
 	source_datum=st.radio ('Source Datum',('Schwarzeck','WGS84'),key='testa')
 	st.write(' ')
 	st.write(' ')
@@ -92,6 +86,7 @@ with col2a:
 	st.write(' ')
 	
 with col2b:
+	st.header('Target System')
 	target_datum=st.radio ('Target Datum',('Schwarzeck','WGS84'),key="testb")
 
 with col2c:
@@ -339,8 +334,7 @@ with col4a:
 
 
 	st.subheader('Source Coordinates')	
-	
-	#Info about input received
+		#Info about input received
 	if input_method=='CSV File':
 		if uploaded_file is not None and file_check==True:
 			st.write('Uploaded file ('+source_datum+' '+source_coord_syst_text+'): '+uploaded_file.name)
@@ -355,7 +349,7 @@ with col4a:
 	#Display input_df and calculate lat long for source_df		
 	if source_coord_syst == 'Namibian (Gauss-Conform)':
 		
-		st.write(input_df.style.format({'y': "{:,.3f}", 'x': '{:,.3f}'}))
+		st.dataframe(input_df.style.format({'y': "{:,.3f}", 'x': '{:,.3f}'}))
 		
 		trafo_yx_Schw = Transformer.from_crs(source_CRS, Schwarzeck0,always_xy=True)
 		lon,lat=trafo_yx_Schw.transform(source_df['y'],source_df['x'])
