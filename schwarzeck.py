@@ -31,10 +31,8 @@ Lo23=CRS.from_proj4("+proj=tmerc +lat_0=-22 +lon_0=23 +k=1 +x_0=0 +y_0=0 +axis=w
 Lo25=CRS.from_proj4("+proj=tmerc +lat_0=-22 +lon_0=25 +k=1 +x_0=0 +y_0=0 +axis=wsu +ellps=bess_nam +to_meter=1.0000135965 +no_defs")
 proj_dict={11:Lo11,13:Lo13,15:Lo15,17:Lo17,18:Lo18,19:Lo19,21:Lo21,23:Lo23,25:Lo25}
 trafo_dict={'EPSG1226 Schwarzeck to WGS84(1)':Schwarzeck1,'EPSG1271 Schwarzeck to WGS84(2)':Schwarzeck2,'Default Schwarzeck to WGS84(3)':Schwarzeck3,'EPSG1226 WGS84 to Schwarzeck(1)':Schwarzeck1,'EPSG1271 WGS84 to Schwarzeck(2)':Schwarzeck2,'Default WGS84 to Schwarzeck(3)':Schwarzeck3}
-#trafo_Schw_WGS = TransformerGroup(CRS(4293),CRS(4326))
+utm_dict={'Zone 33S (15 E)':CRS(32733),'Zone 34S (21 E)':CRS(32734),'Zone 35S (27 E)':CRS(32735)}#trafo_Schw_WGS = TransformerGroup(CRS(4293),CRS(4326))
 #trafo_WGS_Schw = TransformerGroup("epsg:4326","epsg:4293")
-trafo_utm_wgs = Transformer.from_crs(CRS(32733), CRS(4326),always_xy=True)
-trafo_wgs_utm = Transformer.from_crs(CRS(4326),CRS(32733),always_xy=True)
 
 trafo_default_Schw_WGS = Transformer.from_crs(Schwarzeck3, CRS(4326),always_xy=True)
 				
@@ -57,7 +55,7 @@ This app converts and transforms between different coordinate systems in the Nam
 expander_bar = st.beta_expander('About this app')
 expander_bar.markdown('''
 - **Python libraries:** streamlit, pandas, pyproj.CRS, pyproj.Transformer, pyproj.transform
-- **Transformation Parameters:**  Default Transformation is *Schwarzeck to WGS84(3)*: DX=616.8 DY=103.3 DZ=-256.9    
+- **Transformation Parameters:**  Default Transformation is *Schwarzeck to WGS84(3)*: DX=616.8 DY=103.3 DZ=-256.9 (X-Form, Dr. Charles Merry)   
 Different transformations are selectable: *Schwarzeck to WGS84(1)* https://epsg.io/1226 or *Schwarzeck to WGS84(2)* https://epsg.io/1271
 - No warranty is given that the information provided in this app is free of errors - your use of this app and your reliance on any information on it is solely at your own risk.
 - **written by:** Sibylle Engelhard - African Geomatics  https://www.africangeomatics.com
@@ -112,7 +110,7 @@ with col3a:
 	if source_datum=='Schwarzeck':
 		source_coord_syst = st.radio('Source Coordinate System',('Geographical (decimal degrees)','Geographical (deg min sec)','Namibian (Gauss-Conform)'))
 	else:
-		source_coord_syst = st.radio('Source Coordinate System',('Geographical (decimal degrees)','Geographical (deg min sec)','UTM Zone 33S'))
+		source_coord_syst = st.radio('Source Coordinate System',('Geographical (decimal degrees)','Geographical (deg min sec)','UTM'))
 	
 	
 with col3b:
@@ -120,12 +118,15 @@ with col3b:
 		st.subheader(' ')
 		source_central_meridian = st.selectbox('Source Projection Central Meridian',[11,13,15,17,18,19,21,23,25],index=3)
 		source_CRS=proj_dict[source_central_meridian]
-
+	if source_coord_syst == 'UTM':
+		st.subheader(' ')
+		source_utm_zone = st.selectbox('Source UTM Zone',['Zone 33S (15 E)','Zone 34S (21 E)','Zone 35S (27 E)'],index=0)
+		source_CRS=utm_dict[source_utm_zone]
 with col3c:
 	if target_datum=='Schwarzeck':
 		target_coord_syst = st.radio('Target Coordinate System',('Geographical (decimal degrees)','Geographical (deg min sec)','Namibian (Gauss-Conform)'),key="target_schwarzeck")
 	else:
-		target_coord_syst = st.radio('Target Coordinate System',('Geographical (decimal degrees)','Geographical (deg min sec)','UTM Zone 33S'),key="target_wgs")
+		target_coord_syst = st.radio('Target Coordinate System',('Geographical (decimal degrees)','Geographical (deg min sec)','UTM'),key="target_wgs")
 	
 with col3d:	
 	if target_coord_syst == 'Namibian (Gauss-Conform)':
@@ -133,7 +134,10 @@ with col3d:
 		target_central_meridian = st.selectbox('Target Projection Central Meridian',[11,13,15,17,18,19,21,23,25],index=3)
 		target_CRS=proj_dict[target_central_meridian]
 	
-
+	if target_coord_syst == 'UTM':
+		st.subheader(' ')
+		target_utm_zone = st.selectbox('Target UTM Zone',['Zone 33S (15 E)','Zone 34S (21 E)','Zone 35S (27 E)'],index=0)
+		target_CRS=utm_dict[target_utm_zone]
 
 col4a, col4b= st.beta_columns(2)
 		
@@ -169,8 +173,9 @@ with col4a:
 				example_name='decimaldeg.csv'
 				example_text='Download Example CSV File - Geographical (decimal degrees)'
 			else:
-				example_df = pd.read_csv('utm.csv')
-				example_name='utm.csv'
+				utm_zone=source_utm_zone[5:7]
+				example_df = pd.read_csv('utm'+utm_zone+'.csv')
+				example_name='utm'+utm_zone+'.csv'
 				example_text='Download Example CSV File - UTM'
 		
 		# Download link for csv file according to coordinate system
@@ -330,7 +335,7 @@ with col4a:
 	elif source_coord_syst == 'Geographical (decimal degrees)':
 		source_coord_syst_text='- decimal degrees'
 	else:
-		source_coord_syst_text='UTM Zone 33S'
+		source_coord_syst_text='UTM '+source_utm_zone[:-7]
 
 
 	st.subheader('Source Coordinates')	
@@ -378,9 +383,9 @@ with col4a:
 		st.write(input_df.style.format({'Latitude': "{:,.8f}", 'Longitude': '{:,.8f}'}))
 	
 	else:
-		
 		st.write(input_df.style.format({'East': "{:,.3f}", 'North': '{:,.3f}'}))
-		
+		trafo_utm_wgs = Transformer.from_crs(source_CRS, CRS(4326),always_xy=True)
+
 		lonw,latw=trafo_utm_wgs.transform(source_df['East'],source_df['North'])
 		
 		source_df['Latitude']=latw
@@ -417,7 +422,7 @@ with col4b:
 	elif target_coord_syst == 'Geographical (decimal degrees)':
 		target_coord_syst_text='- decimal degrees'
 	else:
-		target_coord_syst_text='UTM Zone 33S'
+		target_coord_syst_text='UTM '+target_utm_zone[:-7]
 
 
 	st.subheader('Target Coordinates')
@@ -480,7 +485,7 @@ with col4b:
 		st.write(target_df.style.format({'Latitude': "{:,.8f}", 'Longitude': '{:,.8f}'}))
 	
 	else:
-		
+		trafo_wgs_utm = Transformer.from_crs(CRS(4326),target_CRS,always_xy=True)
 		east,north=trafo_wgs_utm.transform(target_df['Longitude'],target_df['Latitude'])
 		target_df['East']=east
 		target_df['North']=north
@@ -493,7 +498,7 @@ with col4b:
 		
 	#define file download name
 	if target_coord_syst == 'Namibian (Gauss-Conform)':
-		output_name='Lo'+str(target_central_meridian)+'_yxh.csv'
+		output_name='Lo'+str(target_central_meridian)+'.csv'
 		output_text='Download Output File - Namibian (Gauss-Conform)'
 	elif target_coord_syst == 'Geographical (deg min sec)':
 		output_name='degminsec.csv'
@@ -502,7 +507,7 @@ with col4b:
 		output_name='decimaldeg.csv'
 		output_text='Download Output File - Geographical (decimal degrees)'
 	else:
-		output_name='utm.csv'
+		output_name='utm'+target_utm_zone[5:7]+'.csv'
 		output_text='Download Output File - UTM'
 	
 	#target file download
