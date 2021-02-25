@@ -50,7 +50,7 @@ This app converts and transforms between different coordinate systems in the Nam
 # About
 expander_bar = st.beta_expander('About this app')
 expander_bar.markdown('''
-- **Python libraries:** streamlit, pandas, pyproj
+- **Python libraries:** streamlit, pandas, pydeck, pyproj
 - **Transformation Parameters:**  Default Transformation is *Schwarzeck to WGS84(3)*: DX=616.8 DY=103.3 DZ=-256.9 (X-Form, Dr. Charles Merry)   
 Different transformations are selectable: *Schwarzeck to WGS84(1)* https://epsg.io/1226 or *Schwarzeck to WGS84(2)* https://epsg.io/1271
 - No warranty is given that the information provided in this app is free of errors - your use of this app and your reliance on any information on it is solely at your own risk.
