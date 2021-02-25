@@ -1,19 +1,15 @@
 import streamlit as st
 from PIL import Image
 import pandas as pd
-#import numpy as np
 import base64
-#from pyproj import Proj
 from pyproj import transform, Transformer,CRS
 import pydeck as pdk
-#from pyproj.transformer import TransformerGroup
-# Page Configuration
+
+#-----Page Configuration
 st.set_page_config(page_title='Schwarzeck Transformation Namibia',
 	page_icon='🌐',
 	layout='wide',
 	initial_sidebar_state='expanded')
-
-
 
 
 #-----Projection Definition
@@ -34,12 +30,11 @@ proj_dict={11:Lo11,13:Lo13,15:Lo15,17:Lo17,18:Lo18,19:Lo19,21:Lo21,23:Lo23,25:Lo
 trafo_dict={'EPSG1226 Schwarzeck to WGS84(1)':Schwarzeck1,'EPSG1271 Schwarzeck to WGS84(2)':Schwarzeck2,'Default Schwarzeck to WGS84(3)':Schwarzeck3,'EPSG1226 WGS84 to Schwarzeck(1)':Schwarzeck1,'EPSG1271 WGS84 to Schwarzeck(2)':Schwarzeck2,'Default WGS84 to Schwarzeck(3)':Schwarzeck3}
 utm_dict={'Zone 33S (15 E)':CRS(32733),'Zone 34S (21 E)':CRS(32734),'Zone 35S (27 E)':CRS(32735)}#trafo_Schw_WGS = TransformerGroup(CRS(4293),CRS(4326))
 #trafo_WGS_Schw = TransformerGroup("epsg:4326","epsg:4293")
-
 trafo_default_Schw_WGS = Transformer.from_crs(Schwarzeck3, CRS(4326),always_xy=True)
 				
 						
 
-# Image and Title 2 Columns
+#----Image and Title 2 Columns
 col1a, col1b= st.beta_columns([5,1])
 image = Image.open('trig2.jpg')
 
@@ -71,7 +66,7 @@ def filedownload(df,download_name,showtext):
     href = f'<a href="data:file/csv;base64,{b64}" download='+download_name+'>'+showtext+'</a>'
     return href
 
-
+#Configure sidebar
 st.sidebar.subheader("View Input Coordinates on Map:")
 	
 col2a,col2b,col2c= st.beta_columns([5,2,3])
@@ -150,7 +145,6 @@ with col4a:
 	#CSV File
 	if input_method=='CSV File':
 		#Creating example Dataframes from csv files
-			
 		if source_datum=='Schwarzeck' :
 			if 	source_coord_syst == 'Geographical (deg min sec)':
 				example_df = pd.read_csv('dms.csv')
@@ -281,7 +275,7 @@ with col4a:
 				
 				input_df = user_input_dms()
 			else: 
-				
+
 				def user_input_dec():
 					name = expander2.text_input('Name', 'Brandberg')
 					lat = expander2.number_input('Latitude',value=-21.14882548,min_value=-31.00000000,max_value=-16.00000000,format='%.8f')
@@ -329,14 +323,14 @@ with col4a:
 				
 				input_df = user_input_wgsdec()
 			else:
-				utm_df = pd.read_csv('utm_dict.csv',index_col=0)
-				utm_dict=utm_df.to_dict('index')
-				selected_coord=utm_dict[int(source_utm_zone[5:7])]
+				utm_df = pd.read_csv('utm_coord_dict.csv',index_col=0)
+				utm_coord_dict=utm_df.to_dict('index')
+				selected_coord=utm_coord_dict[int(source_utm_zone[5:7])]
 				
 				def user_input_utm(coord_dict):
 					name = expander2.text_input('Name', coord_dict['Name'])
-					east = expander2.number_input('East',coord_dict['East'],format='%.3f')
-					north = expander2.number_input('North',coord_dict['North'],format='%.3f')
+					east = expander2.number_input('East',value=coord_dict['East'],format='%.3f')
+					north = expander2.number_input('North',value=coord_dict['North'],format='%.3f')
 					data = {'Name': name,
 				        'East': east,
 				        'North': north}
@@ -347,8 +341,8 @@ with col4a:
 		#definition of source_df after coordinate input
 		source_df=input_df.copy()
 		file_check=True
-	#Source System
 	
+	#Source System
 	if source_coord_syst == 'Namibian (Gauss-Conform)':
 		source_coord_syst_text='Lo22/'+str(source_central_meridian)
 	elif source_coord_syst == 'Geographical (deg min sec)':
@@ -451,7 +445,6 @@ with col4a:
 
 	if button1:
 		placeholder_button.empty()
-		
 		button2=placeholder_button.button('Show Map Image',key='initial_state')
 		placeholder_map.empty()
 		placeholder_map.pydeck_chart(pdk.Deck(
@@ -492,9 +485,7 @@ with col4a:
 				]
 		))
 	
-	#st.sidebar.map(map_df,zoom=4)
-
-
+	
 #Target System
 with col4b:
 	
@@ -530,7 +521,7 @@ with col4b:
 		target_df['Longitude']=schw_lon
 		
 	
-	#Define target dataframe
+	#edit target dataframe
 	if target_coord_syst == 'Namibian (Gauss-Conform)':
 		
 		trafo_Schw_Lo = Transformer.from_crs(Schwarzeck0,target_CRS,always_xy=True)
