@@ -5,6 +5,7 @@ import pandas as pd
 import base64
 #from pyproj import Proj
 from pyproj import transform, Transformer,CRS
+import pydeck as pdk
 #from pyproj.transformer import TransformerGroup
 # Page Configuration
 st.set_page_config(page_title='Schwarzeck Transformation Namibia',
@@ -160,7 +161,7 @@ with col4a:
 				example_name='decimaldeg.csv'
 				example_text='Download Example CSV File - Geographical (decimal degrees)'
 			else:
-				example_df = pd.read_csv('Lo2217.csv')
+				example_df = pd.read_csv('Lo22'+str(source_central_meridian)+'.csv')
 				example_name='Lo22'+str(source_central_meridian)+'.csv'
 				example_text='Download Example CSV File - Namibian (Gauss-Conform)'
 		else:
@@ -239,20 +240,29 @@ with col4a:
 	#Coordinate Input
 	else:
 		if source_datum=='Schwarzeck' :
+			
 			if 	source_coord_syst == 'Namibian (Gauss-Conform)':
-				def user_input_yx():
-					name = expander2.text_input('Name', 'Moltkeblick')
-					y = expander2.number_input('y (East)',value=-18508.600,format='%.3f')
-					x = expander2.number_input('x (North)',value=72023.02,format='%.3f')
+				lo_df = pd.read_csv('lo_dict.csv',index_col=0)
+				lo_dict=lo_df.to_dict('index')
+				selected_coord=lo_dict[source_central_meridian]
+				
+				def user_input_yx(coord_dict):
+					name = expander2.text_input('Name', coord_dict['Name'])
+					y = expander2.number_input('y (East)',value=coord_dict['y'],format='%.3f')
+					x = expander2.number_input('x (North)',value=coord_dict['x'],format='%.3f')
 					data = {'Name': name,
 				        'y': y,
 				        'x': x}
 					user_input = pd.DataFrame(data, index=[0])
 					return user_input
-				input_df = user_input_yx()
+				
+				input_df = user_input_yx(selected_coord)
+
+				
 			elif source_coord_syst == 'Geographical (deg min sec)':
+				
 				def user_input_dms():
-					name = expander2.text_input('Name', 'T008')
+					name = expander2.text_input('Name', 'Brandberg')
 					lat_deg = expander2.number_input('Lat deg',value=-21,min_value=-31,max_value=-16)
 					lat_min = expander2.number_input('Lat min',value=8,min_value=0,max_value=59)
 					lat_sec= expander2.number_input('Lat sec',value=55.78348,min_value=0.00000,max_value=59.99999,format='%.5f')
@@ -268,10 +278,12 @@ with col4a:
 				        'Lon_sec': lon_sec}
 					user_input = pd.DataFrame(data, index=[0])
 					return user_input
+				
 				input_df = user_input_dms()
-			elif source_coord_syst == 'Geographical (decimal degrees)':
+			else: 
+				
 				def user_input_dec():
-					name = expander2.text_input('Name', 'T008')
+					name = expander2.text_input('Name', 'Brandberg')
 					lat = expander2.number_input('Latitude',value=-21.14882548,min_value=-31.00000000,max_value=-16.00000000,format='%.8f')
 					lon = expander2.number_input('Longitude',value=14.57821812,min_value=8.00000000,max_value=26.00000000,format='%.8f')
 					data = {'Name': name,
@@ -279,9 +291,11 @@ with col4a:
 				        'Longitude': lon}
 					user_input = pd.DataFrame(data, index=[0])
 					return user_input
+				
 				input_df = user_input_dec()
 		else:
 			if 	source_coord_syst == 'Geographical (deg min sec)':
+				
 				def user_input_wgsdms():
 					name = expander2.text_input('Name', 'T008')
 					lat_deg = expander2.number_input('Lat deg',value=-21,min_value=-31,max_value=-16)
@@ -299,8 +313,10 @@ with col4a:
 				        'Lon_sec': lon_sec}
 					user_input = pd.DataFrame(data, index=[0])
 					return user_input
+				
 				input_df = user_input_wgsdms()
 			elif source_coord_syst == 'Geographical (decimal degrees)':
+				
 				def user_input_wgsdec():
 					name = expander2.text_input('Name', 'T008')
 					lat = expander2.number_input('Latitude',value=-21.14936097,min_value=-31.00000000,max_value=-16.00000000,format='%.8f')
@@ -310,19 +326,24 @@ with col4a:
 				        'Longitude': lon}
 					user_input = pd.DataFrame(data, index=[0])
 					return user_input
+				
 				input_df = user_input_wgsdec()
 			else:
-
-				def user_input_utm():
-					name = expander2.text_input('Name', 'T008')
-					east = expander2.number_input('East',value=456152.918,format='%.3f')
-					north = expander2.number_input('North',value=7661263.725,format='%.3f')
+				utm_df = pd.read_csv('utm_dict.csv',index_col=0)
+				utm_dict=utm_df.to_dict('index')
+				selected_coord=utm_dict[int(source_utm_zone[5:7])]
+				
+				def user_input_utm(coord_dict):
+					name = expander2.text_input('Name', coord_dict['Name'])
+					east = expander2.number_input('East',coord_dict['East'],format='%.3f')
+					north = expander2.number_input('North',coord_dict['North'],format='%.3f')
 					data = {'Name': name,
 				        'East': east,
 				        'North': north}
 					user_input = pd.DataFrame(data, index=[0])
 					return user_input
-				input_df = user_input_utm()
+				
+				input_df = user_input_utm(selected_coord)
 		#definition of source_df after coordinate input
 		source_df=input_df.copy()
 		file_check=True
@@ -394,9 +415,8 @@ with col4a:
 		del source_df['North']
 
 	
-	#Calculate wgs cords and display on map
+	#Calculate wgs coords and display on map
 	map_df=source_df.copy()	
-		
 	if source_datum=='Schwarzeck':
 		wgs_lon,wgs_lat=trafo_default_Schw_WGS.transform(source_df['Longitude'],source_df['Latitude'])
 		map_df['latitude']=wgs_lat
@@ -405,9 +425,75 @@ with col4a:
 	else:
 		map_df['latitude']=map_df['Latitude']
 		map_df['longitude']=map_df['Longitude']
-
-	st.sidebar.map(map_df,zoom=4)
 	
+	#to_map_image=True
+	placeholder_button=st.sidebar.empty()
+	placeholder_map=st.sidebar.empty()
+	button1=placeholder_button.button('Show Satellite Image',key='initial_state')
+	button2=False
+	placeholder_map.pydeck_chart(pdk.Deck(
+			map_style='mapbox://styles/mapbox/outdoors-v11',
+			initial_view_state=pdk.ViewState(
+			latitude=-23,
+			longitude=18,
+			zoom=4),
+			layers=[pdk.Layer(
+					'ScatterplotLayer',
+					data=map_df,
+					get_position=['longitude', 'latitude'],
+					get_color='[200, 30, 0, 160]',
+					radius_min_pixels=4,
+	    			radius_max_pixels=15,
+					)
+				]
+		))
+
+
+	if button1:
+		placeholder_button.empty()
+		
+		button2=placeholder_button.button('Show Map Image',key='initial_state')
+		placeholder_map.empty()
+		placeholder_map.pydeck_chart(pdk.Deck(
+		map_style='mapbox://styles/mapbox/satellite-streets-v11',
+		initial_view_state=pdk.ViewState(
+		latitude=-23,
+		longitude=18,
+		zoom=4),
+		layers=[pdk.Layer(
+				'ScatterplotLayer',
+				data=map_df,
+				get_position=['longitude', 'latitude'],
+				get_color='[0, 0, 255,160]',
+				radius_min_pixels=4,
+    			radius_max_pixels=15,
+				)
+			]
+		))
+		
+	if button2:
+		placeholder_button.empty()
+		button1=placeholder_button.button('Show Satellite Image',key='initial_state')
+		placeholder_map.empty()
+		placeholder_map.pydeck_chart(pdk.Deck(
+			map_style='mapbox://styles/mapbox/outdoors-v11',
+			initial_view_state=pdk.ViewState(
+			latitude=-23,
+			longitude=18,
+			zoom=4),
+			layers=[pdk.Layer(
+					'ScatterplotLayer',
+					data=map_df,
+					get_position=['longitude', 'latitude'],
+					get_color='[200, 30, 0, 160]',
+					radius_min_pixels=4,
+	    			radius_max_pixels=15,
+					)
+				]
+		))
+	
+	#st.sidebar.map(map_df,zoom=4)
+
 
 #Target System
 with col4b:
@@ -498,7 +584,7 @@ with col4b:
 		
 	#define file download name
 	if target_coord_syst == 'Namibian (Gauss-Conform)':
-		output_name='Lo'+str(target_central_meridian)+'.csv'
+		output_name='Lo22'+str(target_central_meridian)+'.csv'
 		output_text='Download Output File - Namibian (Gauss-Conform)'
 	elif target_coord_syst == 'Geographical (deg min sec)':
 		output_name='degminsec.csv'
