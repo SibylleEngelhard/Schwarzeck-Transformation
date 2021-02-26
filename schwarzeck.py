@@ -10,6 +10,7 @@ st.set_page_config(page_title='Schwarzeck Transformation Namibia',
 	page_icon='🌐',
 	layout='wide',
 	initial_sidebar_state='expanded')
+st.markdown('<meta name="google-site-verification" content="F3s2r9N0ORSdR3cmcnLeA_rYaDruqw7wpZ5nb3SqpKs"/>',unsafe_allow_html=True)
 
 
 #-----Projection Definition
@@ -45,6 +46,7 @@ col1b.image(image,width=180)
 col1a.markdown('''
 This app converts and transforms between different coordinate systems in the Namibian Schwarzeck datum and WGS84 datum.
 ''')
+
 
 #---------------------------------#
 # About
