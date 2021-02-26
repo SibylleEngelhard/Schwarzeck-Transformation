@@ -10,8 +10,6 @@ st.set_page_config(page_title='Schwarzeck Transformation Namibia',
 	page_icon='🌐',
 	layout='wide',
 	initial_sidebar_state='expanded')
-st.markdown('<meta name="google-site-verification" content="F3s2r9N0ORSdR3cmcnLeA_rYaDruqw7wpZ5nb3SqpKs"/>',unsafe_allow_html=True)
-
 
 #-----Projection Definition
 Schwarzeck0=CRS.from_proj4("+proj=longlat +ellps=bess_nam +no_defs")
