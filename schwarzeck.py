@@ -369,7 +369,7 @@ with col4a:
 	#Display input_df and calculate lat long for source_df		
 	if source_coord_syst == 'Namibian (Gauss-Conform)':
 		
-		st.dataframe(input_df.style.format({'y': "{:.3f}", 'x': '{:.3f}'}))
+		st.dataframe(input_df.style.format({'y': '{:.3f}', 'x': '{:.3f}'}))
 		
 		trafo_yx_Schw = Transformer.from_crs(source_CRS, Schwarzeck0,always_xy=True)
 		lon,lat=trafo_yx_Schw.transform(source_df['y'],source_df['x'])
@@ -382,7 +382,7 @@ with col4a:
 
 	elif source_coord_syst == 'Geographical (deg min sec)':
 		
-		st.write(input_df.style.format({'Lat_sec': "{:.5f}", 'Lon_sec': '{:.5f}'}))
+		st.write(input_df.style.format({'Lat_sec': '{:.5f}', 'Lon_sec': '{:.5f}'}))
 		
 		source_df['Latitude']=source_df['Lat_deg']-source_df['Lat_min']/60-source_df['Lat_sec']/3600
 		source_df['Longitude']=source_df['Lon_deg']+source_df['Lon_min']/60+source_df['Lon_sec']/3600
@@ -395,10 +395,12 @@ with col4a:
 	
 	elif source_coord_syst == 'Geographical (decimal degrees)':
 		
-		st.write(input_df.style.format({'Latitude': "{:.8f}", 'Longitude': '{:.8f}'}))
+		#st.write(input_df)
+		st.write(input_df.style.format({'Latitude': '{:.8f}', 'Longitude': '{:.8f}'}))
 	
+						
 	else:
-		st.write(input_df.style.format({'East': "{:.3f}", 'North': '{:.3f}'}))
+		st.write(input_df.style.format({'East': '{:.3f}', 'North': '{:.3f}'}))
 		trafo_utm_wgs = Transformer.from_crs(source_CRS, CRS(4326),always_xy=True)
 
 		lonw,latw=trafo_utm_wgs.transform(source_df['East'],source_df['North'])
@@ -533,7 +535,7 @@ with col4b:
 		
 		target_df=target_df[['Name','y','x']]
 		target_df=target_df.round(3)
-		st.write(target_df.style.format({'y': "{:.3f}", 'x': '{:.3f}'}))
+		st.write(target_df.style.format({'y': '{:.3f}', 'x': '{:.3f}'}))
 		
 	
 	elif target_coord_syst == 'Geographical (deg min sec)':
@@ -553,13 +555,13 @@ with col4b:
 		
 		target_df=target_df[['Name','Lat_deg','Lat_min','Lat_sec','Lon_deg','Lon_min','Lon_sec']]
 		target_df=target_df.round(5)
-		st.write(target_df.style.format({'Lat_sec': "{:.5f}", 'Lon_sec': '{:.5f}'}))
+		st.write(target_df.style.format({'Lat_sec': '{:.5f}', 'Lon_sec': '{:.5f}'}))
 		
 	elif target_coord_syst == 'Geographical (decimal degrees)':
 		
 		target_df=target_df[['Name','Latitude','Longitude']]
 		target_df=target_df.round(8)
-		st.write(target_df.style.format({'Latitude': "{:.8f}", 'Longitude': '{:.8f}'}))
+		st.write(target_df.style.format({'Latitude': '{:.8f}', 'Longitude': '{:.8f}'}))
 	
 	else:
 		trafo_wgs_utm = Transformer.from_crs(CRS(4326),target_CRS,always_xy=True)
@@ -571,7 +573,7 @@ with col4b:
 		
 		target_df=target_df[['Name','East','North']]
 		target_df=target_df.round(3)
-		st.write(target_df.style.format({'East': "{:.3f}", 'North': '{:.3f}'}))
+		st.write(target_df.style.format({'East': '{:.3f}', 'North': '{:.3f}'}))
 		
 	#define file download name
 	if target_coord_syst == 'Namibian (Gauss-Conform)':
