@@ -399,6 +399,7 @@ with col4a:
 		
 		st.write(input_df)
 		#st.write(input_df.style.format({'Latitude': '{:.8f}', 'Longitude': '{:.8f}'}))
+		#st.write(input_df.style.format(precision=8))
 	
 						
 	else:
