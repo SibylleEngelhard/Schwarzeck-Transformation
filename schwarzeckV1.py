@@ -39,7 +39,7 @@ trafo_default_Schw_WGS = Transformer.from_crs(Schwarzeck3, CRS(4326),always_xy=T
 						
 
 #----Image and Title 2 Columns
-col1a, col1b= st.columns([5,1])
+col1a, col1b= st.beta_columns([5,1])
 image = Image.open('trig2.jpg')
 
 col1a.title('Schwarzeck - WGS84 Transformation Namibia')
@@ -53,7 +53,7 @@ This app converts and transforms between different coordinate systems in the Nam
 
 #---------------------------------#
 # About
-expander_bar = st.expander('About this app')
+expander_bar = st.beta_expander('About this app')
 expander_bar.markdown('''
 - **Python libraries:** streamlit, pandas, pydeck, pyproj
 - **Transformation Parameters:**  Default Transformation is *Schwarzeck to WGS84(3)*: DX=616.8 DY=103.3 DZ=-256.9 (X-Form, Dr. Charles Merry)   
@@ -74,7 +74,7 @@ def filedownload(df,download_name,showtext):
 #Configure sidebar
 st.sidebar.subheader("View Input Coordinates on Map:")
 	
-col2a,col2b,col2c= st.columns([5,2,3])
+col2a,col2b,col2c= st.beta_columns([5,2,3])
 
 with col2a:
 	st.header('Source System')
@@ -105,7 +105,7 @@ with col2c:
 		trafo_WGS_Schw = Transformer.from_crs(CRS(4326),trafo_dict[datum_transformation],always_xy=True)
 		
 
-col3a, col3b,col3c,col3d= st.columns([3,2,3,2])
+col3a, col3b,col3c,col3d= st.beta_columns([3,2,3,2])
 
 with col3a:	
 	if source_datum=='Schwarzeck':
@@ -140,11 +140,11 @@ with col3d:
 		target_utm_zone = st.selectbox('Target UTM Zone',['Zone 33S (15 E)','Zone 34S (21 E)','Zone 35S (27 E)'],index=0)
 		target_CRS=utm_dict[target_utm_zone]
 
-col4a, col4b= st.columns(2)
+col4a, col4b= st.beta_columns(2)
 		
 with col4a:
 	#choose input method
-	expander2 = st.expander('Click to choose your input method')
+	expander2 = st.beta_expander('Click to choose your input method')
 	input_method = expander2.radio('',('CSV File','Coordinate Input'))
 	
 	#CSV File
@@ -184,11 +184,10 @@ with col4a:
 		
 		#Upload File
 		file_check=False
-		NaN_values=False
+
 		uploaded_file = expander2.file_uploader('Upload your input CSV file', type=['csv'])	
 
 		if uploaded_file is not None:
-
 			try:
 				input_df = pd.read_csv(uploaded_file)
 			except:
@@ -197,10 +196,6 @@ with col4a:
 				except:
 					st.warning("Error with file encoding. Please delete special characters (ä.ö,ü,...). Or try opening and saving the file in a text editor with encoding 'utf-8'.")
 		
-			if input_df.isnull().values.any():
-				st.warning("File contains rows with empty values, these rows were not transformed")
-				NaN_values=True
-
 			if source_coord_syst == 'Namibian (Gauss-Conform)':
 				try:	
 					select=input_df[['Name','y','x']]
@@ -236,15 +231,10 @@ with col4a:
 				except:
 					st.warning("Uploaded file must include the columns: Name, East, North")
 					input_df = example_df
-					source_df=input_df.copy()	
-
-			if NaN_values:
-				#input_df.dropna()
-				source_df=source_df.dropna()	
+					source_df=input_df.copy()		
 		else:
 			input_df = example_df
 			source_df=input_df.copy()
-			
 
 
 
@@ -402,7 +392,7 @@ with col4a:
 
 	elif source_coord_syst == 'Geographical (deg min sec)':
 		
-		st.write(input_df.style.format({'Lat_deg':'{:,.0f}','Lat_min':'{:,.0f}','Lat_sec': '{:,.5f}', 'Lon_deg':'{:,.0f}','Lon_min':'{:,.0f}','Lon_sec': '{:,.5f}'}))
+		st.write(input_df.style.format({'Lat_sec': '{:,.5f}', 'Lon_sec': '{:,.5f}'}))
 		
 		source_df['Latitude']=source_df['Lat_deg']-source_df['Lat_min']/60-source_df['Lat_sec']/3600
 		source_df['Longitude']=source_df['Lon_deg']+source_df['Lon_min']/60+source_df['Lon_sec']/3600
