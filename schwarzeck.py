@@ -440,6 +440,8 @@ with col4a:
 		map_df['latitude']=map_df['Latitude']
 		map_df['longitude']=map_df['Longitude']
 	
+	temp = map_df[["latitude", "longitude"]]
+
 	#to_map_image=True
 	placeholder_button=st.sidebar.empty()
 	placeholder_map=st.sidebar.empty()
