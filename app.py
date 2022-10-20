@@ -42,13 +42,19 @@ trafo_default_Schw_WGS = Transformer.from_crs(Schwarzeck3, CRS(4326),always_xy=T
 col1a, col1b= st.columns([5,1])
 image = Image.open('trig2.jpg')
 
-col1a.title('Schwarzeck - WGS84 Transformation Namibia')
-col1b.image(image,width=180)
+#col1a.title('Schwarzeck - WGS84 Transformation Namibia')
+#---- Title 
+with col1a:
+	st.markdown('<h1 style="margin-bottom:0rem;margin-top:-2rem;text-align: left">Schwarzeck - WGS84 Transformation Namibia</h1>', unsafe_allow_html=True)
+	#App Description
+	st.markdown('''
+	This app converts and transforms between different coordinate systems in the Namibian Schwarzeck datum and WGS84 datum.
+	''')
 
-#App Description
-col1a.markdown('''
-This app converts and transforms between different coordinate systems in the Namibian Schwarzeck datum and WGS84 datum.
-''')
+with col1b:
+	st.image(image,width=180)
+
+
 
 
 #---------------------------------#
@@ -116,11 +122,13 @@ with col3a:
 	
 with col3b:
 	if source_coord_syst == 'Namibian (Gauss-Conform)':
-		st.subheader(' ')
+		st.text(' ')
+		st.text(' ')
 		source_central_meridian = st.selectbox('Source Projection Central Meridian',[11,13,15,17,18,19,21,23,25],index=3)
 		source_CRS=proj_dict[source_central_meridian]
 	if source_coord_syst == 'UTM':
-		st.subheader(' ')
+		st.text(' ')
+		st.text(' ')
 		source_utm_zone = st.selectbox('Source UTM Zone',['Zone 33S (15 E)','Zone 34S (21 E)','Zone 35S (27 E)'],index=0)
 		source_CRS=utm_dict[source_utm_zone]
 with col3c:
@@ -131,12 +139,14 @@ with col3c:
 	
 with col3d:	
 	if target_coord_syst == 'Namibian (Gauss-Conform)':
-		st.subheader(' ')
+		st.text(' ')
+		st.text(' ')
 		target_central_meridian = st.selectbox('Target Projection Central Meridian',[11,13,15,17,18,19,21,23,25],index=3)
 		target_CRS=proj_dict[target_central_meridian]
 	
 	if target_coord_syst == 'UTM':
-		st.subheader(' ')
+		st.text(' ')
+		st.text(' ')
 		target_utm_zone = st.selectbox('Target UTM Zone',['Zone 33S (15 E)','Zone 34S (21 E)','Zone 35S (27 E)'],index=0)
 		target_CRS=utm_dict[target_utm_zone]
 
@@ -370,8 +380,8 @@ with col4a:
 	else:
 		source_coord_syst_text='UTM '+source_utm_zone[:-7]
 
+	st.markdown('<h3 style="margin-bottom:0rem;margin-top:0rem;text-align: left">Source Coordinates</h3>', unsafe_allow_html=True)
 
-	st.subheader('Source Coordinates')	
 		#Info about input received
 	if input_method=='CSV File':
 		if uploaded_file is not None and file_check==True:
@@ -511,8 +521,12 @@ with col4a:
 #Target System
 with col4b:
 	
-	placeholder_inputmethod=st.empty()
-	placeholder_inputmethod.header(' ')
+	#placeholder_inputmethod=st.empty()
+	#placeholder_inputmethod.text(' ')
+	st.text(' ')
+	st.text(' ')
+	st.text(' ')
+	st.text(' ')
 	target_df=source_df.copy()
 	if target_coord_syst == 'Namibian (Gauss-Conform)':
 		target_coord_syst_text='Lo22/'+str(target_central_meridian)
@@ -523,8 +537,9 @@ with col4b:
 	else:
 		target_coord_syst_text='UTM '+target_utm_zone[:-7]
 
+	st.markdown('<h3 style="text-align: left">Target Coordinates</h3>', unsafe_allow_html=True)
 
-	st.subheader('Target Coordinates')
+	
 	if not file_check ==True:
 		st.write('Awaiting CSV file to be uploaded. Currently using example coordinates:')
 	else:	
