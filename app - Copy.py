@@ -5,11 +5,6 @@ import base64
 from pyproj import transform, Transformer,CRS
 import pydeck as pdk
 
-
-def change_map_view():
-	st.session_state.map_view = not st.session_state.map_view
-
-
 #-----Page Configuration
 st.set_page_config(page_title='Schwarzeck Transformation Namibia',
 	page_icon='🌐',
@@ -41,8 +36,7 @@ utm_dict={'Zone 33S (15 E)':CRS(32733),'Zone 34S (21 E)':CRS(32734),'Zone 35S (2
 #trafo_WGS_Schw = TransformerGroup("epsg:4326","epsg:4293")
 trafo_default_Schw_WGS = Transformer.from_crs(Schwarzeck3, CRS(4326),always_xy=True)
 				
-if "map_view" not in st.session_state:
-    st.session_state.map_view=True						
+						
 
 #----Image and Title 2 Columns
 col1a, col1b= st.columns([5,1])
@@ -161,7 +155,7 @@ col4a, col4b= st.columns(2)
 with col4a:
 	#choose input method
 	expander2 = st.expander('Click to choose your input method')
-	input_method = expander2.radio('Input Method',('CSV File','Coordinate Input'),label_visibility="collapsed")
+	input_method = expander2.radio('',('CSV File','Coordinate Input'))
 	
 	#CSV File
 	if input_method=='CSV File':
@@ -459,18 +453,11 @@ with col4a:
 	temp = map_df[["latitude", "longitude"]]
 
 	#to_map_image=True
-
-
-   
 	placeholder_button=st.sidebar.empty()
 	placeholder_map=st.sidebar.empty()
-
-	if st.session_state.map_view:
-		placeholder_button.empty()
-		button11 = placeholder_button.button('Show Satellite Image',on_click=change_map_view)
-		placeholder_map.empty()
-
-		placeholder_map.pydeck_chart(pdk.Deck(
+	button1=placeholder_button.button('Show Satellite Image',key='initial_state')
+	button2=False
+	placeholder_map.pydeck_chart(pdk.Deck(
 			map_style='mapbox://styles/mapbox/outdoors-v11',
 			initial_view_state=pdk.ViewState(
 			latitude=-23,
@@ -482,15 +469,15 @@ with col4a:
 					get_position=['longitude', 'latitude'],
 					get_color='[200, 30, 0, 160]',
 					radius_min_pixels=4,
-	   				radius_max_pixels=15,
+	    			radius_max_pixels=15,
 					)
 				]
 		))
-		
 
-	else:
+
+	if button1:
 		placeholder_button.empty()
-		button22 = placeholder_button.button('Show Default Map',on_click=change_map_view)
+		button2=placeholder_button.button('Show Default Map',key='initial_state2')
 		placeholder_map.empty()
 		placeholder_map.pydeck_chart(pdk.Deck(
 		map_style='mapbox://styles/mapbox/satellite-streets-v11',
@@ -509,17 +496,26 @@ with col4a:
 			]
 		))
 		
-
-
-
-	
-	
-
-
-
-
-		
-
+	if button2:
+		placeholder_button.empty()
+		button1=placeholder_button.button('Show Satellite Image',key='initial_state')
+		placeholder_map.empty()
+		placeholder_map.pydeck_chart(pdk.Deck(
+			map_style='mapbox://styles/mapbox/outdoors-v11',
+			initial_view_state=pdk.ViewState(
+			latitude=-23,
+			longitude=18,
+			zoom=4),
+			layers=[pdk.Layer(
+					'ScatterplotLayer',
+					data=map_df,
+					get_position=['longitude', 'latitude'],
+					get_color='[200, 30, 0, 160]',
+					radius_min_pixels=4,
+	    			radius_max_pixels=15,
+					)
+				]
+		))
 	
 
 #Target System
