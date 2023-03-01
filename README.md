@@ -2,4 +2,4 @@
 Transformation between coordinates in Schwarzeck datum and WGS84 datum
 
 Link to streamlit app:
-https://sibylleengelhard-schwarzeck-transformation-app-twdtxo.streamlitapp.com/
+https://schwarzeck-transformation.streamlitapp.com/
