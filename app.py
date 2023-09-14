@@ -686,9 +686,9 @@ with col4a:
                 if source_coord_syst == "Namibian (Gauss-Conform)":
                     try:
                         select = input_df[["Name", "y", "x"]]
-                        file_check = True
                     except:
                         st.warning("Uploaded file must include the columns: Name, y, x")
+                        file_check = False
                         input_df = example_df
                 elif source_coord_syst == "Geographical (deg min sec)":
                     try:
@@ -703,29 +703,31 @@ with col4a:
                                 "Lon_sec",
                             ]
                         ]
-                        file_check = True
+                        
                     except:
                         st.warning(
                             "Uploaded file must include the columns: Name, Lat_deg, Lat_min, Lat_sec, Lon_deg, Lon_min, Lon_sec"
                         )
+                        file_check = False
                         input_df = example_df
                 elif source_coord_syst == "Geographical (decimal degrees)":
                     try:
                         select = input_df[["Name", "Latitude", "Longitude"]]
-                        file_check = True
+                        
                     except:
                         st.warning(
                             "Uploaded file must include the columns: Name, Latitude, Longitude"
                         )
+                        file_check = False
                         input_df = example_df
                 else:
                     try:
                         select = input_df[["Name", "East", "North"]]
-                        file_check = True
                     except:
                         st.warning(
                             "Uploaded file must include the columns: Name, East, North"
                         )
+                        file_check = False
                         input_df = example_df
                 source_df = input_df.copy()
                 if NaN_values:
