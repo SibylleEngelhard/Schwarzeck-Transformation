@@ -1,4 +1,4 @@
-pyproj==3.3.1
-streamlit==1.15.1
-pandas==1.4.4
-pydeck==0.7.1
+pyproj==3.5.0
+streamlit==1.26.0
+pandas==2.0.2
+pydeck==0.8.1b0

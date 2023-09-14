@@ -16,6 +16,123 @@ def example_source_upload(filename):
     return df
 
 @st.cache_data
+def create_example_coords_dict():
+    # creates dictionary with one example coordinate for each selectable coordinate system
+    example_coords_dict = {
+        "Schwarzeck":{
+            "Geographical (decimal degrees)":{
+                0:{
+                    "Name": "Brandberg",
+                    "Latitude": -21.14882548,
+                    "Longitude": 14.57821812,
+                },
+             },             
+            "Geographical (deg min sec)": {
+                0:{
+                    "Name": "Brandberg",
+                    "Lat_deg": -21,
+                    "Lat_min": 8,
+                    "Lat_sec": 55.78348,
+                    "Lon_deg": 14, 
+                    "Lon_min": 34, 
+                    "Lon_sec": 41.59803,
+                },
+            },
+            "Namibian (Gauss-Conform)":{
+                11: {
+                    "Name": "Kunene",
+                    "y": -81059.409,
+                    "x": -523748.244,
+                },
+                13: {
+                    "Name": "Victor",
+                    "y": -23030.1,
+                    "x": -386483.6,
+                },
+                15: {
+                    "Name": "Brandberg",
+                    "y": 43804,
+                    "x": -94178,
+                },
+                17: {
+                    "Name": "Omatako",
+                    "y": 29823.33,
+                    "x": -88258.09,
+                },
+                18: {
+                    "Name": "Schlangenkopf",
+                    "y": 13136.25,
+                    "x": 524801.378,
+                },
+                19: {
+                    "Name": "Schwarzeck",
+                    "y": 33244.91,
+                    "x": 84181.32,
+                },
+                21: {
+                    "Name": "Gam",
+                    "y": 18455.47,
+                    "x": -193858.67,
+                },
+                23: {
+                    "Name": "KB1",
+                    "y": -17030.32,
+                    "x": -463724.954,
+                },
+                25: {
+                    "Name": "KATM",
+                    "y": 71880.011,
+                    "x": -497662.898,
+                },
+            },
+        },
+        "WGS84":{
+            "Geographical (decimal degrees)":{
+              0:{ #wgs
+                    "Name": "T008",
+                    "Latitude": -21.14936097,
+                    "Longitude": 14.57768595,
+                },
+            },           
+            "Geographical (deg min sec)": {
+                0:{#wgs
+                    "Name": "T008",
+                    "Lat_deg": -21,
+                    "Lat_min": 8,
+                    "Lat_sec": 57.69950,
+                    "Lon_deg": 14, 
+                    "Lon_min": 34, 
+                    "Lon_sec": 39.66941,
+                },
+            },
+            "UTM":{
+                "Zone 33S (15 E)": {
+                    "Name": "SESR",
+                    "East": 581024.898,
+                    "North": 7291603.569,
+                },
+                "Zone 34S (21 E)": {
+                    "Name": "MUHO",
+                    "East": 392751.159,
+                    "North": 8019425.879,
+                },
+                "Zone 35S (27 E)": {
+                    "Name": "KATM",
+                    "East": 215587.278,
+                    "North": 8062712.461,
+                },
+            },
+        },    
+    }
+    return example_coords_dict
+
+@st.cache_data
+def create_example_df(source_datum,source_coord_system,source_proj_id=0):
+    # creates dataframe with one example coordinate with selected coord system settings from cached dictionary
+    example_coords_dict=create_example_coords_dict()
+    return pd.DataFrame(example_coords_dict[source_datum][source_coord_system][source_proj_id], index=[0])
+
+@st.cache_data
 def load_image():
     st.image("trig2.jpg",width=180)
     
@@ -32,17 +149,15 @@ def filedownload(df, download_name, showtext):
     )
     return href
 
-
-def change_source_coord_syst():
+def reset_dataeditor_dfs():
     st.session_state.newdf = pd.DataFrame()
     st.session_state.editeddf = pd.DataFrame()
-    st.session_state.temp_input_df = pd.DataFrame()
 
 def update_editable_dataframe():
-    #st.session_state.temp_input_df = input_df.copy()
     st.session_state.newdf = pd.DataFrame(st.session_state.data_editor["added_rows"])
     st.session_state.editeddf = pd.DataFrame(st.session_state.data_editor["edited_rows"])
-            
+ 
+          
 
 # --------------------------------- #
 
@@ -54,10 +169,8 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-
 if "input_method" not in st.session_state:
-    st.session_state.input_method = "CSV File"
-
+    st.session_state.input_method = "Upload CSV File"
 
 
 # ---- menu button invisible ---- #
@@ -67,7 +180,7 @@ st.markdown(
 )
 
 
-# ---- Projection Definition ---- #
+# ---- Projection Definitions and Settings ---- #
 Schwarzeck0 = CRS.from_proj4("+proj=longlat +ellps=bess_nam +no_defs")
 Schwarzeck1 = CRS.from_proj4(
     "+proj=longlat +ellps=bess_nam +towgs84=616.0,97.0,-251.0,0,0,0,0 +no_defs"
@@ -78,43 +191,35 @@ Schwarzeck2 = CRS.from_proj4(
 Schwarzeck3 = CRS.from_proj4(
     "+proj=longlat +ellps=bess_nam +towgs84=616.8,103.3,-256.9,0,0,0,0 +no_defs"
 )
-Lo11 = CRS.from_proj4(
-    "+proj=tmerc +lat_0=-22 +lon_0=11 +k=1 +x_0=0 +y_0=0 +axis=wsu +ellps=bess_nam +to_meter=1.0000135965 +no_defs"
-)
-Lo13 = CRS.from_proj4(
-    "+proj=tmerc +lat_0=-22 +lon_0=13 +k=1 +x_0=0 +y_0=0 +axis=wsu +ellps=bess_nam +to_meter=1.0000135965 +no_defs"
-)
-Lo15 = CRS.from_proj4(
-    "+proj=tmerc +lat_0=-22 +lon_0=15 +k=1 +x_0=0 +y_0=0 +axis=wsu +ellps=bess_nam +to_meter=1.0000135965 +no_defs"
-)
-Lo17 = CRS.from_proj4(
-    "+proj=tmerc +lat_0=-22 +lon_0=17 +k=1 +x_0=0 +y_0=0 +axis=wsu +ellps=bess_nam +to_meter=1.0000135965 +no_defs"
-)
-Lo18 = CRS.from_proj4(
-    "+proj=tmerc +lat_0=-22 +lon_0=18 +k=1 +x_0=0 +y_0=0 +axis=wsu +ellps=bess_nam +to_meter=1.0000135965 +no_defs"
-)
-Lo19 = CRS.from_proj4(
-    "+proj=tmerc +lat_0=-22 +lon_0=19 +k=1 +x_0=0 +y_0=0 +axis=wsu +ellps=bess_nam +to_meter=1.0000135965 +no_defs"
-)
-Lo21 = CRS.from_proj4(
-    "+proj=tmerc +lat_0=-22 +lon_0=21 +k=1 +x_0=0 +y_0=0 +axis=wsu +ellps=bess_nam +to_meter=1.0000135965 +no_defs"
-)
-Lo23 = CRS.from_proj4(
-    "+proj=tmerc +lat_0=-22 +lon_0=23 +k=1 +x_0=0 +y_0=0 +axis=wsu +ellps=bess_nam +to_meter=1.0000135965 +no_defs"
-)
-Lo25 = CRS.from_proj4(
-    "+proj=tmerc +lat_0=-22 +lon_0=25 +k=1 +x_0=0 +y_0=0 +axis=wsu +ellps=bess_nam +to_meter=1.0000135965 +no_defs"
-)
+
 proj_dict = {
-    11: Lo11,
-    13: Lo13,
-    15: Lo15,
-    17: Lo17,
-    18: Lo18,
-    19: Lo19,
-    21: Lo21,
-    23: Lo23,
-    25: Lo25,
+    11: CRS.from_proj4(
+    "+proj=tmerc +lat_0=-22 +lon_0=11 +k=1 +x_0=0 +y_0=0 +axis=wsu +ellps=bess_nam +to_meter=1.0000135965 +no_defs"
+    ),
+    13: CRS.from_proj4(
+    "+proj=tmerc +lat_0=-22 +lon_0=13 +k=1 +x_0=0 +y_0=0 +axis=wsu +ellps=bess_nam +to_meter=1.0000135965 +no_defs"
+    ),
+    15: CRS.from_proj4(
+    "+proj=tmerc +lat_0=-22 +lon_0=15 +k=1 +x_0=0 +y_0=0 +axis=wsu +ellps=bess_nam +to_meter=1.0000135965 +no_defs"
+    ),
+    17: CRS.from_proj4(
+    "+proj=tmerc +lat_0=-22 +lon_0=17 +k=1 +x_0=0 +y_0=0 +axis=wsu +ellps=bess_nam +to_meter=1.0000135965 +no_defs"
+    ),
+    18: CRS.from_proj4(
+    "+proj=tmerc +lat_0=-22 +lon_0=18 +k=1 +x_0=0 +y_0=0 +axis=wsu +ellps=bess_nam +to_meter=1.0000135965 +no_defs"
+    ),
+    19: CRS.from_proj4(
+    "+proj=tmerc +lat_0=-22 +lon_0=19 +k=1 +x_0=0 +y_0=0 +axis=wsu +ellps=bess_nam +to_meter=1.0000135965 +no_defs"
+    ),
+    21: CRS.from_proj4(
+    "+proj=tmerc +lat_0=-22 +lon_0=21 +k=1 +x_0=0 +y_0=0 +axis=wsu +ellps=bess_nam +to_meter=1.0000135965 +no_defs"
+    ),
+    23: CRS.from_proj4(
+    "+proj=tmerc +lat_0=-22 +lon_0=23 +k=1 +x_0=0 +y_0=0 +axis=wsu +ellps=bess_nam +to_meter=1.0000135965 +no_defs"
+    ),
+    25: CRS.from_proj4(
+    "+proj=tmerc +lat_0=-22 +lon_0=25 +k=1 +x_0=0 +y_0=0 +axis=wsu +ellps=bess_nam +to_meter=1.0000135965 +no_defs"
+    ),
 }
 trafo_dict = {
     "EPSG1226 Schwarzeck to WGS84(1)": Schwarzeck1,
@@ -128,8 +233,9 @@ utm_dict = {
     "Zone 33S (15 E)": CRS(32733),
     "Zone 34S (21 E)": CRS(32734),
     "Zone 35S (27 E)": CRS(32735),
-}  # trafo_Schw_WGS = TransformerGroup(CRS(4293),CRS(4326))
-# trafo_WGS_Schw = TransformerGroup("epsg:4326","epsg:4293")
+}  
+
+
 trafo_default_Schw_WGS = Transformer.from_crs(Schwarzeck3, CRS(4326), always_xy=True)
 
 if "map_view" not in st.session_state:
@@ -139,12 +245,10 @@ if "newdf" not in st.session_state:
     st.session_state.newdf = pd.DataFrame()
 if "editeddf" not in st.session_state:
     st.session_state.editeddf = pd.DataFrame()
-if "temp_input_df" not in st.session_state:
-    st.session_state.temp_input_df = pd.DataFrame()
-
-
-#if "edited_df" not in st.session_state:
-#    st.session_state.edited_df = pd.DataFrame()
+#if "temp_input_df" not in st.session_state:
+#    st.session_state.temp_input_df = pd.DataFrame()
+if "source_df" not in st.session_state:
+    st.session_state.source_df = pd.DataFrame()
 
 
 column_config_dict = {
@@ -153,21 +257,25 @@ column_config_dict = {
         "Name": st.column_config.TextColumn(
             required=True, 
             default="P001", 
-            max_chars=20, 
-            validate=None),
+            max_chars=20,
+            help="Enter coordinates manually or copy/paste from table",
+            validate=None,
+            ),
          "Latitude": st.column_config.NumberColumn(
             required=True,
-            #min_value=-31.00000000, 
-            #max_value=-16.00000000,
+            min_value=-90.00000000, 
+            max_value=90.00000000,
             default=-22.00000000,
             format="%.8f",
+            help="Enter coordinates manually or copy/paste from table",
             ),
         "Longitude": st.column_config.NumberColumn(
             required=True,
-            #min_value=8.00000000, 
-            #max_value=26.00000000,
+            min_value=0.00000000, 
+            max_value=360.00000000,
             default=16.00000000,
             format="%.8f",
+            help="Enter coordinates manually or copy/paste from table",
             ),
     },
 
@@ -177,14 +285,18 @@ column_config_dict = {
             width="small",
             default="P001", 
             max_chars=20, 
-            validate=None),
+            validate=None,
+            help="Enter coordinates manually or copy/paste from table",
+            ),
         "Lat_deg": st.column_config.NumberColumn(
             required=True,
             width="small",
             default=-22,
-            #min_value=-31, 
-            #max_value=-16,
+            min_value=-90, 
+            max_value=90,
             format="%d",
+            help="Enter coordinates manually or copy/paste from table",
+
             ),
         "Lat_min": st.column_config.NumberColumn(
             required=True,
@@ -193,6 +305,7 @@ column_config_dict = {
             min_value=0, 
             max_value=59,
             format="%d",
+            help="Enter coordinates manually or copy/paste from table",
             ),
         "Lat_sec": st.column_config.NumberColumn(
             required=True,
@@ -201,14 +314,16 @@ column_config_dict = {
             min_value=0.00000,
             max_value=59.99999,
             format="%.5f",
+            help="Enter coordinates manually or copy/paste from table",
             ),
         "Lon_deg": st.column_config.NumberColumn(
             required=True,
             width="small",
             default=16,
-            #min_value=8,
-            #max_value=26,
+            min_value=0,
+            max_value=360,
             format="%d",
+            help="Enter coordinates manually or copy/paste from table",
             ),
         "Lon_min": st.column_config.NumberColumn(
             required=True,
@@ -217,6 +332,7 @@ column_config_dict = {
             min_value=0, 
             max_value=59,
             format="%d",
+            help="Enter coordinates manually or copy/paste from table",
             ),
         "Lon_sec": st.column_config.NumberColumn(
             required=True,
@@ -225,6 +341,7 @@ column_config_dict = {
             min_value=0.00000,
             max_value=59.99999,
             format="%.5f",
+            help="Enter coordinates manually or copy/paste from table",
             ),
     },
 
@@ -233,14 +350,20 @@ column_config_dict = {
             required=True, 
             default="P001", 
             max_chars=20, 
-            validate=None),
+            validate=None,
+            help="Enter coordinates manually or copy/paste from table",
+            ),
         "y": st.column_config.NumberColumn(
             required=True,
+            default=0.000,
             format="%.3f",
+            help="Enter coordinates manually or copy/paste from table",
             ),
         "x": st.column_config.NumberColumn(
             required=True,
+            default=0.000,
             format="%.3f",
+            help="Enter coordinates manually or copy/paste from table",
             ),
     },
 
@@ -249,14 +372,20 @@ column_config_dict = {
             required=True, 
             default="P001", 
             max_chars=20, 
-            validate=None),
-        "y": st.column_config.NumberColumn(
-            required=True,
-            format="%.3f",
+            validate=None,
+            help="Enter coordinates manually or copy/paste from table",
             ),
-        "x": st.column_config.NumberColumn(
+        "East": st.column_config.NumberColumn(
             required=True,
+            default=200000.000,
             format="%.3f",
+            help="Enter coordinates manually or copy/paste from table",
+            ),
+        "North": st.column_config.NumberColumn(
+            required=True,
+            default=8000000.000,
+            format="%.3f",
+            help="Enter coordinates manually or copy/paste from table",
             ),
     },
 }
@@ -301,26 +430,26 @@ with col1b:
 st.sidebar.subheader("View Input Coordinates on Map:")
 
 
-colA,colB = st. columns(2)
+col2a,col2b = st. columns(2)
 
-with colA:
+with col2a:
     st.header("Source System")
     source_datum = st.radio(
         "Source Datum", 
         ("Schwarzeck", "WGS84"), 
-        key="testa",
-        on_change=change_source_coord_syst
+        key="radio1",
+        on_change=reset_dataeditor_dfs
         )
-        
+    
 
-with colB:
+with col2b:
     st.header("Target System")
-    col2b, col2c = st.columns([2, 3])
-    with col2b:
-        
-        target_datum = st.radio("Target Datum", ("Schwarzeck", "WGS84"), key="testb")
-
+    col2c, col2d = st.columns([2, 3])
     with col2c:
+        
+        target_datum = st.radio("Target Datum", ("Schwarzeck", "WGS84"), key="radio2")
+
+    with col2d:
         if source_datum != target_datum:
             trafo_description_dict = {
                 "EPSG1226 Schwarzeck to WGS84(1)": "DX=616.0  DY=97.0  DZ=-251.0",
@@ -379,27 +508,25 @@ with col3a:
                 "Geographical (deg min sec)",
                 "Namibian (Gauss-Conform)",
             ),
-            on_change=change_source_coord_syst
+            on_change=reset_dataeditor_dfs
         )
     else:
         source_coord_syst = st.radio(
             "Source Coordinate System",
             ("Geographical (decimal degrees)", "Geographical (deg min sec)", "UTM"),
-            on_change=change_source_coord_syst
+            on_change=reset_dataeditor_dfs
         )
 
 
 with col3b:
     if source_coord_syst == "Namibian (Gauss-Conform)":
-
-
         st.text(" ")
         st.text(" ")
         source_central_meridian = st.selectbox(
             "Source Projection Central Meridian",
             [11, 13, 15, 17, 18, 19, 21, 23, 25],
             index=3,
-            on_change=change_source_coord_syst
+            on_change=reset_dataeditor_dfs
         )
         source_CRS = proj_dict[source_central_meridian]
     if source_coord_syst == "UTM":
@@ -409,7 +536,7 @@ with col3b:
             "Source UTM Zone",
             ["Zone 33S (15 E)", "Zone 34S (21 E)", "Zone 35S (27 E)"],
             index=0,
-            on_change=change_source_coord_syst
+            on_change=reset_dataeditor_dfs
         )
         source_CRS = utm_dict[source_utm_zone]
 with col3c:
@@ -460,16 +587,28 @@ with col4a:
         unsafe_allow_html=True,
     )
     
-    #st.session_state.input_method = st.selectbox("Please select your input method",("CSV File", "Coordinate Input"))
     st.session_state.input_method = st.radio("Select",
-            ("CSV File",
-             "Coordinate Input",
-             "Editable DF"
-            ),label_visibility="collapsed",horizontal=True
+            ("Upload CSV File",
+             "Enter Coordinates"
+            ),
+            label_visibility="collapsed",
+            horizontal=True,
+            on_change=reset_dataeditor_dfs
         )
     
+    
+    # Create Info Text about Source System
+    if source_coord_syst == "Namibian (Gauss-Conform)":
+        source_coord_syst_text = "Lo22/" + str(source_central_meridian)
+    elif source_coord_syst == "Geographical (deg min sec)":
+        source_coord_syst_text = "- deg min sec"
+    elif source_coord_syst == "Geographical (decimal degrees)":
+        source_coord_syst_text = "- decimal degrees"
+    else:
+        source_coord_syst_text = "UTM " + source_utm_zone[:-7]
+
     # CSV File
-    if st.session_state.input_method == "CSV File":
+    if st.session_state.input_method == "Upload CSV File":
         # Creating example Dataframes from csv files
         if source_datum == "Schwarzeck":
             if source_coord_syst == "Geographical (deg min sec)":
@@ -523,304 +662,122 @@ with col4a:
         expander2.markdown(
             filedownload(example_df, example_name, example_text), unsafe_allow_html=True
         )
-        #st.markdown(
-        #    filedownload(example_df, example_name, example_text), unsafe_allow_html=True
-        #)
-
-        if uploaded_file is not None:
-
+ 
+        if uploaded_file is not None: #checks of uploaded file
             try:
                 input_df = pd.read_csv(uploaded_file)
+                file_check = True
             except:
                 try:
                     input_df = pd.read_csv(uploaded_file, encoding="latin-1")
+                    file_check = True
                 except:
                     st.warning(
                         "Error with file encoding. Please delete special characters (ä.ö,ü,...). Or try opening and saving the file in a text editor with encoding 'utf-8'."
                     )
 
-            if input_df.isnull().values.any():
-                st.warning(
-                    "File contains rows with empty values, these rows were not transformed"
-                )
-                NaN_values = True
+            if file_check:
+                if input_df.isnull().values.any():
+                    st.warning(
+                        "File contains rows with empty values, these rows were not transformed"
+                    )
+                    NaN_values = True
 
-            if source_coord_syst == "Namibian (Gauss-Conform)":
-                try:
-                    select = input_df[["Name", "y", "x"]]
-                    file_check = True
-                    #source_df = input_df.copy()
-                except:
-                    st.warning("Uploaded file must include the columns: Name, y, x")
-                    input_df = example_df
-                    #source_df = input_df.copy()
-            elif source_coord_syst == "Geographical (deg min sec)":
-                try:
-                    select = input_df[
-                        [
-                            "Name",
-                            "Lat_deg",
-                            "Lat_min",
-                            "Lat_sec",
-                            "Lon_deg",
-                            "Lon_min",
-                            "Lon_sec",
+                if source_coord_syst == "Namibian (Gauss-Conform)":
+                    try:
+                        select = input_df[["Name", "y", "x"]]
+                        file_check = True
+                    except:
+                        st.warning("Uploaded file must include the columns: Name, y, x")
+                        input_df = example_df
+                elif source_coord_syst == "Geographical (deg min sec)":
+                    try:
+                        select = input_df[
+                            [
+                                "Name",
+                                "Lat_deg",
+                                "Lat_min",
+                                "Lat_sec",
+                                "Lon_deg",
+                                "Lon_min",
+                                "Lon_sec",
+                            ]
                         ]
-                    ]
-                    file_check = True
-                    #source_df = input_df.copy()
-                except:
-                    st.warning(
-                        "Uploaded file must include the columns: Name, Lat_deg, Lat_min, Lat_sec, Lon_deg, Lon_min, Lon_sec"
-                    )
-                    input_df = example_df
-                    #source_df = input_df.copy()
-            elif source_coord_syst == "Geographical (decimal degrees)":
-                try:
-                    select = input_df[["Name", "Latitude", "Longitude"]]
-                    file_check = True
-                    #source_df = input_df.copy()
-                except:
-                    st.warning(
-                        "Uploaded file must include the columns: Name, Latitude, Longitude"
-                    )
-                    input_df = example_df
-                    #source_df = input_df.copy()
+                        file_check = True
+                    except:
+                        st.warning(
+                            "Uploaded file must include the columns: Name, Lat_deg, Lat_min, Lat_sec, Lon_deg, Lon_min, Lon_sec"
+                        )
+                        input_df = example_df
+                elif source_coord_syst == "Geographical (decimal degrees)":
+                    try:
+                        select = input_df[["Name", "Latitude", "Longitude"]]
+                        file_check = True
+                    except:
+                        st.warning(
+                            "Uploaded file must include the columns: Name, Latitude, Longitude"
+                        )
+                        input_df = example_df
+                else:
+                    try:
+                        select = input_df[["Name", "East", "North"]]
+                        file_check = True
+                    except:
+                        st.warning(
+                            "Uploaded file must include the columns: Name, East, North"
+                        )
+                        input_df = example_df
+                source_df = input_df.copy()
+                if NaN_values:
+                    # input_df.dropna()
+                    source_df = source_df.dropna()
             else:
-                try:
-                    select = input_df[["Name", "East", "North"]]
-                    file_check = True
-                    #source_df = input_df.copy()
-                except:
-                    st.warning(
-                        "Uploaded file must include the columns: Name, East, North"
-                    )
-                    input_df = example_df
-                    #source_df = input_df.copy()
-            source_df = input_df.copy()
-            if NaN_values:
-                # input_df.dropna()
-                source_df = source_df.dropna()
+                input_df = example_df
+                source_df = input_df.copy()
+
         else:
             input_df = example_df
             source_df = input_df.copy()
 
     
-    # Coordinate Input
-    else:
+    else: # Coordinate Input
 
-        expander2 = st.expander("enter coordinates")
-
-        if source_datum == "Schwarzeck":
-
-            if source_coord_syst == "Namibian (Gauss-Conform)":
-                lo_df = pd.read_csv("lo_dict.csv", index_col=0)
-                lo_dict = lo_df.to_dict("index")
-                selected_coord = lo_dict[source_central_meridian]
-
-                def user_input_yx(coord_dict):
-                    name = expander2.text_input("Name", coord_dict["Name"])
-                    y1 = expander2.number_input(
-                        "y (East)", value=coord_dict["y"], format="%.3f"
-                    )
-                    x1 = expander2.number_input(
-                        "x (North)", value=coord_dict["x"], format="%.3f"
-                    )
-                    data = {"Name": name, "y": y1, "x": x1}
-                    user_input = pd.DataFrame(data, index=[0])
-                    return user_input
-
-                input_df = user_input_yx(selected_coord)
-
-            elif source_coord_syst == "Geographical (deg min sec)":
-
-                def user_input_dms():
-                    name = expander2.text_input("Name", "Brandberg")
-                    lat_deg = expander2.number_input(
-                        "Lat deg", value=-21, min_value=-31, max_value=-16
-                    )
-                    lat_min = expander2.number_input(
-                        "Lat min", value=8, min_value=0, max_value=59
-                    )
-                    lat_sec = expander2.number_input(
-                        "Lat sec",
-                        value=55.78348,
-                        min_value=0.00000,
-                        max_value=59.99999,
-                        format="%.5f",
-                    )
-                    lon_deg = expander2.number_input(
-                        "Lon deg", value=14, min_value=8, max_value=26
-                    )
-                    lon_min = expander2.number_input(
-                        "Lon min", value=34, min_value=0, max_value=59
-                    )
-                    lon_sec = expander2.number_input(
-                        "Lon sec",
-                        value=41.59803,
-                        min_value=0.00000,
-                        max_value=59.99999,
-                        format="%.5f",
-                    )
-                    data = {
-                        "Name": name,
-                        "Lat_deg": lat_deg,
-                        "Lat_min": lat_min,
-                        "Lat_sec": lat_sec,
-                        "Lon_deg": lon_deg,
-                        "Lon_min": lon_min,
-                        "Lon_sec": lon_sec,
-                    }
-                    user_input = pd.DataFrame(data, index=[0])
-                    return user_input
-
-                input_df = user_input_dms()
-            else:
-
-
-                def user_input_dec():
-                    name = expander2.text_input("Name", "Brandberg")
-                    lat1 = expander2.number_input(
-                        "Latitude",
-                        value=-21.14882548,
-                        min_value=-31.00000000,
-                        max_value=-16.00000000,
-                        format="%.8f",
-                    )
-                    lon1 = expander2.number_input(
-                        "Longitude",
-                        value=14.57821812,
-                        min_value=8.00000000,
-                        max_value=26.00000000,
-                        format="%.8f",
-                    )
-                    data = {"Name": name, "Latitude": lat1, "Longitude": lon1}
-                    user_input = pd.DataFrame(data, index=[0])
-                    return user_input
-
-                input_df = user_input_dec()
-        else:
-            if source_coord_syst == "Geographical (deg min sec)":
-
-                def user_input_wgsdms():
-                    name = expander2.text_input("Name", "T008")
-                    lat_deg = expander2.number_input(
-                        "Lat deg", value=-21, min_value=-31, max_value=-16
-                    )
-                    lat_min = expander2.number_input(
-                        "Lat min", value=8, min_value=0, max_value=59
-                    )
-                    lat_sec = expander2.number_input(
-                        "Lat sec",
-                        value=57.69950,
-                        min_value=0.00000,
-                        max_value=59.99999,
-                        format="%.5f",
-                    )
-                    lon_deg = expander2.number_input(
-                        "Lon deg", value=14, min_value=8, max_value=26
-                    )
-                    lon_min = expander2.number_input(
-                        "Lon min", value=34, min_value=0, max_value=59
-                    )
-                    lon_sec = expander2.number_input(
-                        "Lon sec",
-                        value=39.66941,
-                        min_value=0.00000,
-                        max_value=59.99999,
-                        format="%.5f",
-                    )
-                    data = {
-                        "Name": name,
-                        "Lat_deg": lat_deg,
-                        "Lat_min": lat_min,
-                        "Lat_sec": lat_sec,
-                        "Lon_deg": lon_deg,
-                        "Lon_min": lon_min,
-                        "Lon_sec": lon_sec,
-                    }
-                    user_input = pd.DataFrame(data, index=[0])
-                    return user_input
-
-                input_df = user_input_wgsdms()
-            elif source_coord_syst == "Geographical (decimal degrees)":
-
-                def user_input_wgsdec():
-                    name = expander2.text_input("Name", "T008")
-                    lat2 = expander2.number_input(
-                        "Latitude",
-                        value=-21.14936097,
-                        min_value=-31.00000000,
-                        max_value=-16.00000000,
-                        format="%.8f",
-                    )
-                    lon2 = expander2.number_input(
-                        "Longitude",
-                        value=14.57768595,
-                        min_value=8.00000000,
-                        max_value=26.00000000,
-                        format="%.8f",
-                    )
-                    data = {"Name": name, "Latitude": lat2, "Longitude": lon2}
-                    user_input = pd.DataFrame(data, index=[0])
-                    return user_input
-
-                input_df = user_input_wgsdec()
-            else:
-                utm_df = pd.read_csv("utm_dict.csv", index_col=0)
-                utm_dict = utm_df.to_dict("index")
-                selected_coord = utm_dict[int(source_utm_zone[5:7])]
-
-                def user_input_utm(coord_dict):
-                    name = expander2.text_input("Name", coord_dict["Name"])
-                    east1 = expander2.number_input(
-                        "East", value=coord_dict["East"], format="%.3f"
-                    )
-                    north1 = expander2.number_input(
-                        "North", value=coord_dict["North"], format="%.3f"
-                    )
-                    data = {"Name": name, "East": east1, "North": north1}
-                    user_input = pd.DataFrame(data, index=[0])
-                    return user_input
-
-                input_df = user_input_utm(selected_coord)
-            #source_df = input_df.copy()
-        st.session_state.temp_input_df = input_df.copy()
-
-        if st.session_state.input_method == "Editable DF":
-            edited_df = st.data_editor(
+        if source_datum == "WGS84": #create example df with datum and coord syst settings and optional utm zone
+            try:
+                input_df = create_example_df(source_datum,source_coord_syst,source_utm_zone)
+            except:
+                input_df = create_example_df(source_datum,source_coord_syst)
+        else: # "Schwarzeck" #create example df with datum and coord syst settings and optional central meridian
+            try:
+                input_df = create_example_df(source_datum,source_coord_syst,source_central_meridian)
+            except:
+                input_df = create_example_df(source_datum,source_coord_syst)
+        
+ 
+        temp_input_df = input_df.copy() #original input_df is saved
+        st.write(source_datum + " " + source_coord_syst_text)
+        edited_df = st.data_editor(
             input_df,
             key="data_editor",
             num_rows="dynamic",
             hide_index=True,
             on_change=update_editable_dataframe,
             column_config=column_config_dict[source_coord_syst]
-            )
-            added_rows_list = st.session_state.newdf.index.values.tolist()    
-            edited_values_list = st.session_state.editeddf.index.values.tolist()
-            if not len(edited_values_list) == 0:
-                for i in edited_values_list:
-                    st.session_state.temp_input_df.at[0,i] = st.session_state.editeddf.at[i,0]
-            
-            input_df = pd.concat([st.session_state.temp_input_df, st.session_state.newdf], axis=0)
+        )
+        added_rows_list = st.session_state.newdf.index.values.tolist()    
+        edited_values_list = st.session_state.editeddf.index.values.tolist()
+        if not len(edited_values_list) == 0: #if original input was changed
+            for i in edited_values_list:
+                temp_input_df.at[0,i] = st.session_state.editeddf.at[i,0]
+        
+        input_df = pd.concat([temp_input_df, st.session_state.newdf], axis=0)
 
         source_df = input_df.copy()
         file_check = True
 
-    # Source System
-    if source_coord_syst == "Namibian (Gauss-Conform)":
-        source_coord_syst_text = "Lo22/" + str(source_central_meridian)
-    elif source_coord_syst == "Geographical (deg min sec)":
-        source_coord_syst_text = "- deg min sec"
-    elif source_coord_syst == "Geographical (decimal degrees)":
-        source_coord_syst_text = "- decimal degrees"
-    else:
-        source_coord_syst_text = "UTM " + source_utm_zone[:-7]
-
-    
 
     # Info about input received
-    if st.session_state.input_method == "CSV File":
+    if st.session_state.input_method == "Upload CSV File":
         if uploaded_file is not None and file_check:
             st.write(
                 "Uploaded file ("
@@ -834,48 +791,21 @@ with col4a:
             st.write(
                 "Awaiting CSV file to be uploaded. Currently using example coordinates:"
             )
-    else:
-        st.write(source_datum + " " + source_coord_syst_text)
-
-
-    #problem with these session states on change of coord_sys:
-    #st.write(st.session_state.temp_input_df)
-    #st.write(st.session_state.newdf)
-    #st.write(st.session_state.editeddf)
-    
-    # Display input_df
-    st.dataframe(
-        input_df,
-        hide_index=True,
-        column_config=column_config_dict[source_coord_syst]
-        )
-    #st.write(input_df.style.format({"y": "{:,.3f}", "x": "{:,.3f}"}))
-
+        # Display input_df
+        st.dataframe(
+            input_df,
+            hide_index=True,
+            column_config=column_config_dict[source_coord_syst]
+            )
+ 
+ 
     # calculate lat long for source_df    
     if source_coord_syst == "Namibian (Gauss-Conform)":    
         trafo_yx_Schw = Transformer.from_crs(source_CRS, Schwarzeck0, always_xy=True)
         lon, lat = trafo_yx_Schw.transform(source_df["y"], source_df["x"])
-        #lon, lat = trafo_yx_Schw.transform(source_df.iloc[: , 1], source_df.iloc[: , 2])
         source_df["Latitude"] = lat
         source_df["Longitude"] = lon
-        #del source_df["y"]
-        #del source_df["x"]
-
     elif source_coord_syst == "Geographical (deg min sec)":
-
-#        st.write(
- #           input_df.style.format(
-  #              {
-   #                 "Lat_deg": "{:,.0f}",
-    #                "Lat_min": "{:,.0f}",
-     #               "Lat_sec": "{:,.5f}",
-      #              "Lon_deg": "{:,.0f}",
-       #             "Lon_min": "{:,.0f}",
-        #            "Lon_sec": "{:,.5f}",
-         #       }
-          #  )
-        #)
-
         source_df["Latitude"] = (
             source_df["Lat_deg"]
             - source_df["Lat_min"] / 60
@@ -886,37 +816,18 @@ with col4a:
             + source_df["Lon_min"] / 60
             + source_df["Lon_sec"] / 3600
         )
-        #del source_df["Lat_deg"]
-        #del source_df["Lat_min"]
-        #del source_df["Lat_sec"]
-        #del source_df["Lon_deg"]
-        #del source_df["Lon_min"]
-        #del source_df["Lon_sec"]
-
-    #elif source_coord_syst == "Geographical (decimal degrees)":
-
-        #st.write(input_df.style.format({"Latitude": "{:,.8f}", "Longitude": "{:,.8f}"}))
     elif source_coord_syst == "UTM":
-
-        #st.write(input_df.style.format({"East": "{:,.3f}", "North": "{:,.3f}"}))
         trafo_utm_wgs = Transformer.from_crs(source_CRS, CRS(4326), always_xy=True)
         lonw, latw = trafo_utm_wgs.transform(source_df["East"], source_df["North"])       
-        #lonw, latw = trafo_utm_wgs.transform(source_df.iloc[: , 1], source_df.iloc[: , 2])
-        
         source_df["Latitude"] = latw
         source_df["Longitude"] = lonw
-        #del source_df["East"]
-        #del source_df["North"]
 
-
-
-
+   
 
     # Calculate wgs coords and display on map
     map_df = source_df.copy()
     if source_datum == "Schwarzeck":
         wgs_lon, wgs_lat = trafo_default_Schw_WGS.transform(source_df["Longitude"], source_df["Latitude"])
-        #wgs_lon, wgs_lat = trafo_default_Schw_WGS.transform(source_df.iloc[: , 2], source_df.iloc[: , 1])
 
         map_df["latitude"] = wgs_lat
         map_df["longitude"] = wgs_lon
@@ -925,61 +836,44 @@ with col4a:
         map_df["latitude"] = map_df["Latitude"]
         map_df["longitude"] = map_df["Longitude"]
 
-    temp = map_df[["latitude", "longitude"]]
-
-    # to_map_image=True
-
-
-
-    placeholder_button = st.sidebar.empty()
-    placeholder_map = st.sidebar.empty()
 
     if st.session_state.map_view:
-        placeholder_button.empty()
-        button11 = placeholder_button.button(
+        map_style="mapbox://styles/mapbox/outdoors-v11"
+        button11 = st.sidebar.button(
             "Show Satellite Image", on_click=change_map_view
         )
-        placeholder_map.empty()
-
-        placeholder_map.pydeck_chart(
-            pdk.Deck(
-                map_style="mapbox://styles/mapbox/outdoors-v11",
-                initial_view_state=pdk.ViewState(latitude=-23, longitude=18, zoom=4),
-                layers=[
-                    pdk.Layer(
-                        "ScatterplotLayer",
-                        data=map_df,
-                        get_position=["longitude", "latitude"],
-                        get_color="[200, 30, 0, 160]",
-                        radius_min_pixels=4,
-                        radius_max_pixels=15,
-                    )
-                ],
-            )
-        )
-
     else:
-        placeholder_button.empty()
-        button22 = placeholder_button.button(
+        map_style="mapbox://styles/mapbox/satellite-streets-v11",
+        button22 = st.sidebar.button(
             "Show Default Map", on_click=change_map_view
         )
-        placeholder_map.empty()
-        placeholder_map.pydeck_chart(
-            pdk.Deck(
-                map_style="mapbox://styles/mapbox/satellite-streets-v11",
-                initial_view_state=pdk.ViewState(latitude=-23, longitude=18, zoom=4),
-                layers=[
-                    pdk.Layer(
-                        "ScatterplotLayer",
-                        data=map_df,
-                        get_position=["longitude", "latitude"],
-                        get_color="[0, 0, 255,160]",
-                        radius_min_pixels=4,
-                        radius_max_pixels=15,
-                    )
-                ],
-            )
+
+    st.sidebar.pydeck_chart(
+        pdk.Deck(
+            map_style=map_style,
+            initial_view_state=pdk.ViewState(latitude=-23, longitude=18, zoom=4),
+            layers=[
+                pdk.Layer(
+                    "ScatterplotLayer",
+                    data=map_df,
+                    get_position=["longitude", "latitude"],
+                    get_color="[200, 30, 0, 160]",
+                    radius_min_pixels=4,
+                    radius_max_pixels=15,
+                    pickable=True,
+                    auto_highlight=True,
+                )
+            ],
+            tooltip={"html": "<b>{Name}<b>",
+                    "style": {
+                        "backgroundColor": "transparent",
+                        "color": "black"
+                    }
+            }
         )
+    )
+
+
 
     
 # Target System
@@ -987,10 +881,6 @@ with col4b:
     st.markdown(
     '<h3 style="text-align: left">Target Coordinates</h3>', unsafe_allow_html=True
     )
-
-    # placeholder_inputmethod=st.empty()
-    # placeholder_inputmethod.text(' ')
-    st.text(" ")
     st.text(" ")
     st.text(" ")
     st.text(" ")
@@ -1003,7 +893,6 @@ with col4b:
         target_coord_syst_text = "- decimal degrees"
     else:
         target_coord_syst_text = "UTM " + target_utm_zone[:-7]
-
 
     if not file_check:
         st.write(
@@ -1060,15 +949,11 @@ with col4b:
             ["Name", "Lat_deg", "Lat_min", "Lat_sec", "Lon_deg", "Lon_min", "Lon_sec"]
         ]
         target_df = target_df.round(5)
-        #st.write(target_df.style.format({"Lat_sec": "{:,.5f}", "Lon_sec": "{:,.5f}"}))
-
+ 
     elif target_coord_syst == "Geographical (decimal degrees)":
 
         target_df = target_df[["Name", "Latitude", "Longitude"]]
         target_df = target_df.round(8)
-        #st.write(
-        #    target_df.style.format({"Latitude": "{:,.8f}", "Longitude": "{:,.8f}"})
-        #)
 
     else:
         trafo_wgs_utm = Transformer.from_crs(CRS(4326), target_CRS, always_xy=True)
@@ -1081,8 +966,7 @@ with col4b:
 
         target_df = target_df[["Name", "East", "North"]]
         target_df = target_df.round(3)
-        #st.write(target_df.style.format({"East": "{:,.3f}", "North": "{:,.3f}"}))
-
+ 
 
     st.dataframe(
         target_df,
